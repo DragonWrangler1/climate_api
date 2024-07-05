@@ -202,13 +202,38 @@ local function parse_config(player, particles)
 end
 
 local function handle_effect(player_data)
-	for playername, data in pairs(player_data) do
-		local player = minetest.get_player_by_name(playername)
-		for weather, value in pairs(data) do
-			local config = parse_config(player, value)
-			minetest.add_particlespawner(config)
-		end
-	end
+    for playername, data in pairs(player_data) do
+        local player = minetest.get_player_by_name(playername)
+        if player then 
+            -- Check nodes above the player position
+            local pos = player:get_pos()
+            local all_air_above = true
+            local check_pos = vector.new(pos.x, pos.y + 1, pos.z)
+            local max_height = pos.y + 50
+            
+            while check_pos.y <= max_height do
+                local node = minetest.get_node(check_pos)
+                if node and node.name ~= "air" then
+                    all_air_above = false
+                    break
+                end
+                check_pos.y = check_pos.y + 1
+            end
+            
+            -- Start particle spawner if all nodes above are air
+            if all_air_above then
+                for weather, value in pairs(data) do
+                    local config = parse_config(player, value)
+                    if pos.y <= 0 then
+                    else
+                    minetest.add_particlespawner(config)
+                    end
+                end
+            else
+            end
+        else
+        end
+    end
 end
 
 climate_api.register_effect(EFFECT_NAME, handle_effect, "tick")
