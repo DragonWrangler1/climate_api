@@ -201,15 +201,19 @@ local function parse_config(player, particles)
 	return config
 end
 
+-- Function to handle effects and force load mapblocks
 local function handle_effect(player_data)
     for playername, data in pairs(player_data) do
         local player = minetest.get_player_by_name(playername)
-        if player then 
-            -- Check nodes above the player position
+        if player then
+            -- Define the particlespawner position (e.g., directly above the player)
             local pos = player:get_pos()
+            local spawner_pos = vector.new(pos.x, pos.y + 10, pos.z)  -- Example offset, adjust as needed
+            
+            -- Check nodes above the particlespawner position
             local all_air_above = true
-            local check_pos = vector.new(pos.x, pos.y + 1, pos.z)
-            local max_height = pos.y + 50
+            local check_pos = vector.new(spawner_pos.x, spawner_pos.y + 1, spawner_pos.z)
+            local max_height = spawner_pos.y + 60  -- Check up to 30 nodes above
             
             while check_pos.y <= max_height do
                 local node = minetest.get_node(check_pos)
@@ -224,17 +228,17 @@ local function handle_effect(player_data)
             if all_air_above then
                 for weather, value in pairs(data) do
                     local config = parse_config(player, value)
-                    if pos.y <= 0 then
+                    if spawner_pos.y <= 0 then
+                        -- Skip creating particles below ground level
                     else
-                    minetest.add_particlespawner(config)
+                        minetest.add_particlespawner(config)
                     end
                 end
-            else
             end
-        else
         end
     end
 end
+
 
 climate_api.register_effect(EFFECT_NAME, handle_effect, "tick")
 climate_api.set_effect_cycle(EFFECT_NAME, CYCLE_LENGTH)
